@@ -5,6 +5,7 @@ import datetime
 import sys
 import ssl
 import urllib
+import os
 from typing import Dict, Tuple
 import requests
 from requests.auth import HTTPBasicAuth
@@ -20,12 +21,64 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 CHECKPOINTER = "ta_msft_sec_xdr_checkpoints"
 DEFAULT_PAGE_SIZE = 100
 
+def get_log_level(session_key: str) -> int:
+    """Get the log level from the add-on settings.
+    
+    Args:
+        session_key: Splunk session key
+        
+    Returns:
+        The log level as an integer (logging.INFO, logging.DEBUG, etc.)
+    """
+    try:
+        # Get the settings configuration
+        settings_cfm = conf_manager.ConfManager(
+            session_key,
+            ADDON_NAME,
+            realm="__REST_CREDENTIAL__#{}#configs/conf-ta_msft_sec_xdr_settings".format(ADDON_NAME)
+        )
+        
+        # Get the logging stanza
+        settings_conf = settings_cfm.get_conf("ta_msft_sec_xdr_settings")
+        log_level_str = settings_conf.get("logging", {}).get("loglevel", "INFO")
+        
+        # Convert string log level to logging constant
+        log_levels = {
+            "DEBUG": logging.DEBUG,
+            "INFO": logging.INFO,
+            "WARNING": logging.WARNING,
+            "ERROR": logging.ERROR,
+            "CRITICAL": logging.CRITICAL
+        }
+        
+        return log_levels.get(log_level_str, logging.INFO)
+    except Exception:
+        # Default to INFO if there's any error
+        return logging.INFO
+
 def logger_for_input(session_key: str, input_name: str) -> logging.Logger:
-    """Set up a logger instance for the input."""
+    """Set up a logger instance for the input.
+    
+    Logs are stored in $SPLUNK_HOME/var/log/splunk/ta_msft_sec_xdr_*.log
+    The log level is determined by the add-on settings (Configuration > Logging)
+    """
+    # Set up the log directory to ensure logs go to the right place
+    try:
+        log_dir = os.path.join(os.environ.get('SPLUNK_HOME', ''), 'var', 'log', 'splunk')
+        log.Logs.set_context(directory=log_dir, namespace=ADDON_NAME.lower())
+    except Exception:
+        # If we can't set the context, the solnlib will try to use the default location
+        pass
+    
+    # Create a safe name for the logger
     safe_input_name = input_name.replace(" ", "_").replace(":", "_").replace("/", "_").replace("\\", "_")
-    logger_name = f"{ADDON_NAME.lower()}_{safe_input_name}"
+    logger_name = f"{safe_input_name}"
+    
+    # Get the logger and set the log level from settings
     logger = log.Logs().get_logger(logger_name)
-    logger.setLevel(logging.INFO)
+    log_level = get_log_level(session_key)
+    logger.setLevel(log_level)
+    
     return logger
 
 def get_account_credentials(session_key: str, account_name: str) -> Dict[str, str]:
