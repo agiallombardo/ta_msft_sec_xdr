@@ -27,8 +27,6 @@ __pycache__/
 *.so
 *.egg
 *.egg-info/
-dist/
-build/
 pip-log.txt
 *.manifest
 *.spec

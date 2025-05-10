@@ -1,0 +1,312 @@
+{
+    "pages": {
+        "configuration": {
+            "tabs": [
+                {
+                    "name": "account",
+                    "table": {
+                        "actions": [
+                            "edit",
+                            "delete",
+                            "clone"
+                        ],
+                        "header": [
+                            {
+                                "label": "Name",
+                                "field": "name"
+                            },
+                            {
+                                "field": "tenant",
+                                "label": "Azure Tenant ID"
+                            },
+                            {
+                                "field": "clientid",
+                                "label": "Client ID"
+                            }
+                        ]
+                    },
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Account Name must begin with a letter and consist exclusively of alphanumeric characters and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length of input name should be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ],
+                            "field": "name",
+                            "help": "A unique name for the account.",
+                            "required": true
+                        },
+                        {
+                            "field": "tenant",
+                            "label": "Azure Tenant ID",
+                            "help": "",
+                            "required": true,
+                            "type": "text",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 0,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Max length of text input is 8192"
+                                }
+                            ]
+                        },
+                        {
+                            "field": "clientid",
+                            "label": "clientid",
+                            "type": "text",
+                            "required": true,
+                            "help": "Enter the clientid for this account.",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 200,
+                                    "errorMsg": "Length of Client ID should be between 1 and 200"
+                                }
+                            ]
+                        },
+                        {
+                            "field": "apitoken",
+                            "label": "apitoken",
+                            "type": "text",
+                            "encrypted": true,
+                            "required": true,
+                            "help": "Enter the apitoken for this account.",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Length of API token should be between 1 and 8192"
+                                }
+                            ]
+                        }
+                    ],
+                    "title": "Accounts"
+                },
+                {
+                    "name": "logging",
+                    "title": "Logging",
+                    "entity": [
+                        {
+                            "type": "singleSelect",
+                            "label": "Log level",
+                            "options": {
+                                "disableSearch": true,
+                                "autoCompleteFields": [
+                                    {
+                                        "value": "DEBUG",
+                                        "label": "DEBUG"
+                                    },
+                                    {
+                                        "value": "INFO",
+                                        "label": "INFO"
+                                    },
+                                    {
+                                        "value": "WARNING",
+                                        "label": "WARNING"
+                                    },
+                                    {
+                                        "value": "ERROR",
+                                        "label": "ERROR"
+                                    },
+                                    {
+                                        "value": "CRITICAL",
+                                        "label": "CRITICAL"
+                                    }
+                                ]
+                            },
+                            "defaultValue": "INFO",
+                            "field": "loglevel",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Log level must be one of: DEBUG, INFO, WARNING, ERROR, CRITICAL",
+                                    "pattern": "^DEBUG|INFO|WARNING|ERROR|CRITICAL$"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "title": "Configuration",
+            "description": "Set up your add-on"
+        },
+        "inputs": {
+            "services": [
+                {
+                    "name": "defender_xdr_alert_inputs",
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Input Name must begin with a letter and consist exclusively of alphanumeric characters and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length of input name should be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ],
+                            "field": "name",
+                            "help": "A unique name for the data input.",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "field": "interval",
+                            "label": "Interval",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Interval must be either a non-negative number, CRON interval or -1.",
+                                    "pattern": "^((?:-1|\\d+(?:\\.\\d+)?)|(([\\*\\d{1,2}\\,\\-\\/]+\\s){4}[\\*\\d{1,2}\\,\\-\\/]+))$"
+                                },
+                                {
+                                    "type": "number",
+                                    "range": [
+                                        60,
+                                        86400
+                                    ],
+                                    "errorMsg": "Interval must be between 60 and 86400"
+                                }
+                            ],
+                            "help": "Time interval of the data input, in seconds.",
+                            "required": true,
+                            "defaultValue": "300"
+                        },
+                        {
+                            "type": "singleSelect",
+                            "field": "index",
+                            "label": "Index",
+                            "defaultValue": "default",
+                            "options": {
+                                "endpointUrl": "data/indexes?search=isInternal=0+disabled=0",
+                                "denyList": "^_.*$",
+                                "createSearchChoice": true
+                            },
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Index names must begin with a letter or a number and must contain only letters, numbers, underscores or hyphens.",
+                                    "pattern": "^[a-zA-Z0-9][a-zA-Z0-9\\\\_\\\\-]*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length of index name should be between 1 and 80.",
+                                    "minLength": 1,
+                                    "maxLength": 80
+                                }
+                            ]
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Account to use",
+                            "options": {
+                                "referenceName": "account"
+                            },
+                            "help": "Account to use for this input.",
+                            "field": "account",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length of account name should be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        }
+                    ],
+                    "inputHelperModule": "defender_xdr_alert_inputs",
+                    "title": "defender_xdr_alert_inputs"
+                }
+            ],
+            "title": "Inputs",
+            "description": "Manage your data inputs",
+            "table": {
+                "actions": [
+                    "edit",
+                    "delete",
+                    "clone"
+                ],
+                "header": [
+                    {
+                        "label": "Name",
+                        "field": "name"
+                    },
+                    {
+                        "label": "Interval",
+                        "field": "interval"
+                    },
+                    {
+                        "label": "Index",
+                        "field": "index"
+                    },
+                    {
+                        "label": "Status",
+                        "field": "disabled"
+                    }
+                ],
+                "moreInfo": [
+                    {
+                        "label": "Name",
+                        "field": "name"
+                    },
+                    {
+                        "label": "Interval",
+                        "field": "interval"
+                    },
+                    {
+                        "label": "Index",
+                        "field": "index"
+                    },
+                    {
+                        "label": "Status",
+                        "field": "disabled",
+                        "mapping": {
+                            "true": "Inactive",
+                            "false": "Active"
+                        }
+                    }
+                ]
+            }
+        },
+        "dashboard": {
+            "panels": [
+                {
+                    "name": "default"
+                }
+            ]
+        }
+    },
+    "meta": {
+        "name": "ta_msft_sec_xdr",
+        "restRoot": "ta_msft_sec_xdr",
+        "version": "0.0.1",
+        "displayName": "Microsoft Security XDR Add-on for Splunk",
+        "schemaVersion": "0.0.9",
+        "supportedThemes": [
+            "light",
+            "dark"
+        ],
+        "_uccVersion": "5.63.0"
+    }
+}
